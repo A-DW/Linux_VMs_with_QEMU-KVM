@@ -91,23 +91,44 @@ localhost (QEMU)
 qemu:///system
 ```
 
+### First VM settings
 
+For the initial Linux VM, let's use:
+- Connection: QEMU/KVM system
+- Installation source: Local ISO
+- Firmware: UEFI
+- Disk format: QCOW2, dynamically allocated
+- Disk bus: VirtIO or VirtIO-SCSI
+- Network source: Virtual network ``default`` — NAT
+- Network model: VirtIO
+- Display: SPICE
+- CPU configuration: Default initially; try host-passthrough later
+- Networking: Do not configure a bridge yet unless the VM must appear directly on your physical LAN
 
+For a first lab, **NAT is the correct network choice**. The VM receives outbound network access while remaining behind a libvirt-managed virtual network. Use a Linux bridge only when a guest must appear as a separate machine directly on the physical LAN; bridging is an additional netwokring skill, not a necessary first step.
 
+#### Ubuntu guests
 
+Inside an Ubuntu guest, install:
+```bash
+sudo apt update
+sudo apt install qemu-guest-agent spice-vdagent
+sudo systemctl enable --now qemu-guest-agent
+```
 
+The QEMU guest agent provides a controlled host-to-guest communication channel, while SPICE components improve interactive desktop integration. QEMU's documentation and enterprise virtualization guidance identify the guest agent as the component through which a host can issue supported commands to a guest.
 
+#### Windows guests
 
+Windows works well under this stack, but it benefits strongly from **VirtIO drivers** for virtual storage and networking. The Fedora project maintains the Windows VirtIO drivers because Microsoft does not include them with Windows.
 
+For an uncomplicated first Windows installation:
+ 1. Create the VM with virt-manager and select the detected Windows version.
+ 2. Use UEFI and add and emulated TPM 2.0 for Windows 11.
+ 3. Attach both the Windows installation ISO and the stable ``virtio-win-iso``.
+ 4. If Windows Setup cannot see a VirtIO disk, choose **Load driver** and select the matching storage driver from the VirtIO ISO.
+ 5. After Windows boots, install the full VirtIO guest tools and QEMU guest agent.
 
+VirtIO replaces slower fully emulated disk and network devices with paravirtualized devices designed for virtual machines. The official virtio-win project publishes signed binary drivers in ISO form for QEMU/KVM Windows guests.
 
-
-
-
-
-
-
-
-
-
-
+For troubleshooting, begin with conservative virtual devices rather than changing several advanced options simultaneously. If a Windows guest freezes, record the VM XML and host logs, then test display, VirtIO drivers, firmware and CPU configuration one variable at a time.
