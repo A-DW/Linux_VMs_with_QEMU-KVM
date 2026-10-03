@@ -32,7 +32,7 @@ For that reason, lets use **QEMU/KVM with libvirt and virt-manager**. In practic
 
 ## How the stack works
 
-test```
+```test
 virt-manager        → Graphical interface
 virsh               → Command-line interface
        ↓
@@ -58,7 +58,7 @@ QEMU can emulate complete machines by itself, but when paired with KVM it can ex
 
 On a current Ubuntu workstation(/client), install the official packages:
 
-bash```
+```bash
 sudo apt update
 sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients virt-manager virtinst ovmf swtpm swtpm-tools
 ```
@@ -66,13 +66,13 @@ sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients virt-manager vir
 Ubunt's current documentaion lists ``qemu-kvm`` and ``libvirt-daemon-system`` as the core installation and ``virt-manager`` as its graphical manager. ``ovmf`` supplies UEFI firmware for x86-64 guests, while ``swtpm`` supplies an emulated TPM when a modern guest such as Windows 11 needs one.
 
 Give your account VM-management permissions to the management groups:
-bash```
+```bash
 sudo usermod -aG libvirt,kvm "$USER"
 ```
 Then **log out completely and log back in**.
 
 Check the host afterward:
-bash```
+```bash
 virt-host-validate qemu
 virsh --connect qemu:///system list --all
 ```
@@ -80,12 +80,12 @@ virsh --connect qemu:///system list --all
 ``virt-host-validate`` verifies whether the machine is suitably configured for a selected libvirt hypervisor driver. If KVM validation fails, confirm that Intel VT-x or AMD-V/SVM is enabled in the UEFI/BIOS and that ``/dev/kvm`` exists.
 
 Launch the GUI:
-bash```
+```bash
 virt-manager
 ```
 
 Use the **QEMU/KVM system connection** — normally displayed as **QEMU/KVM** or **localhost (QEMU)** — rathar then building a separate user-session setup initially. The system connection is the conventional choice for server-like guests, host-boot autostart and managed virtual networking.
-text```
+```text
 QEMU/KVM
 localhost (QEMU)
 qemu:///system
