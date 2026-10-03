@@ -5,8 +5,8 @@ In this document I go through some questions and doubts that I had.
 Here are the questions:
  - Why QEMU and KVM, and not one fo the two?
  - Aren't they used for different purposes?
- - What is "qemu:///system"?
- - Could "qemu:///system" be different with different words?
+ - What is "``qemu:///system``"?
+ - Could "``qemu:///system``" be different with different words?
 
 **QEMU and KVM serve different purposes**, but on Linux they are normally used **together**. QEMU provides the virtual computer; KVM lets QEMU execute the guest's CPU instructions efficiently on the physical CPU.
 
@@ -171,11 +171,11 @@ qemu       → Use the QEMU driver
 +ssh       → Transport the libvirt connection over SSH
 server     → Remote virtualization host
 /system    → Use that host’s system libvirt instance
-´´´
+```
 
 Example:
 ```bash
-virsh .c qemu+ssh://alex@192.168.1.50/system list --all
+virsh -c qemu+ssh://alex@192.168.1.50/system list --all
 ```
 
 Virt-manager can use this too, allowing your Ubuntu desktop to manage VMs running on a separate Linux server. libvirt officially supports local, Unix-socker, SSH, TCP and remote variantes of the QEMU connection URI.
