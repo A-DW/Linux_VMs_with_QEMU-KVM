@@ -131,4 +131,22 @@ For an uncomplicated first Windows installation:
 
 VirtIO replaces slower fully emulated disk and network devices with paravirtualized devices designed for virtual machines. The official virtio-win project publishes signed binary drivers in ISO form for QEMU/KVM Windows guests.
 
+## What not to choose
+
+### QEMU alone
+
+Do not begin by manually writing large ``qemu-system-x86_64`` commands. That appreaoch is valuable for understanding experiments, but it means personally managing arguments for storage, networking, firmware, display and lifecycle. QEMU can fully emulate another CPU architecture for ordinary work.
+
+### KVM alone
+
+KVM is not a VirtualBox-like desktop application. It is a kernel virtualization facility used by a userspace virtual-machine monitor such as QEMU: Asking whether to use "KVM or QEMU" is therefore similar to asking whether to use a graphics driver or the application that draws the interface: in the setup, both participate.
+
+### GNOME Boxes as the main tool
+
+Boxes uses much of the same backend stack and is useful for quick-tests, but its interface intentionally omits many advanced options. It is not the strongest choice for learning virtual networks, storage pools, firmware, device models, and remote hypervisors or repeatable deployment.
+
+### Proxmox on the workstation
+
+Proxmox is appropriate when a computer's primary purpose is to act as a dedicated virtualization server with browser-based, centralized administration. It is unnecessary when the objective is to keep Ubuntu as the daily desktop and run local VMs inside it. If a separate home-lab host is added later, Proxmox can be evaluated independently without changing the recommended Ubuntu workstation stack.
+
 For troubleshooting, begin with conservative virtual devices rather than changing several advanced options simultaneously. If a Windows guest freezes, record the VM XML and host logs, then test display, VirtIO drivers, firmware and CPU configuration one variable at a time.
