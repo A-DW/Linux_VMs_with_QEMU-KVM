@@ -133,6 +133,34 @@ VirtIO replaces slower fully emulated disk and network devices with paravirtuali
 
 For troubleshooting, begin with conservative virtual devices rather than changing several advanced options simultaneously. If a Windows guest freezes, record the VM XML and host logs, then test display, VirtIO drivers, firmware and CPU configuration one variable at a time.
 
+## Practical command sheet
+
+```bash
+# Host validation
+virt-host-validate qemu
+
+# Show every system VM
+virsh -c qemu:///system list --all
+
+# Start and gracefully stop a guest
+virsh -c qemu:///system start VM_NAME
+virsh -c qemu:///system shutdown VM_NAME
+
+# Enable VM startup when the host boots
+virsh -c qemu:///system autostart VM_NAME
+
+# Inspect the VM definition
+virsh -c qemu:///system dumpxml VM_NAME
+
+# Show virtual networks
+virsh -c qemu:///system net-list --all
+
+# Show storage pools
+virsh -c qemu:///system pool-list --all
+```
+
+These commands use the same libvirt-managed machines visible in virt-manager, so GUI and CLI learning reinforce each other instead of creating two separate VM environments.
+
 ## What not to choose
 
 ### QEMU alone
