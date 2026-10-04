@@ -131,6 +131,8 @@ For an uncomplicated first Windows installation:
 
 VirtIO replaces slower fully emulated disk and network devices with paravirtualized devices designed for virtual machines. The official virtio-win project publishes signed binary drivers in ISO form for QEMU/KVM Windows guests.
 
+For troubleshooting, begin with conservative virtual devices rather than changing several advanced options simultaneously. If a Windows guest freezes, record the VM XML and host logs, then test display, VirtIO drivers, firmware and CPU configuration one variable at a time.
+
 ## What not to choose
 
 ### QEMU alone
@@ -148,5 +150,3 @@ Boxes uses much of the same backend stack and is useful for quick-tests, but its
 ### Proxmox on the workstation
 
 Proxmox is appropriate when a computer's primary purpose is to act as a dedicated virtualization server with browser-based, centralized administration. It is unnecessary when the objective is to keep Ubuntu as the daily desktop and run local VMs inside it. If a separate home-lab host is added later, Proxmox can be evaluated independently without changing the recommended Ubuntu workstation stack.
-
-For troubleshooting, begin with conservative virtual devices rather than changing several advanced options simultaneously. If a Windows guest freezes, record the VM XML and host logs, then test display, VirtIO drivers, firmware and CPU configuration one variable at a time.
