@@ -133,6 +133,14 @@ VirtIO replaces slower fully emulated disk and network devices with paravirtuali
 
 For troubleshooting, begin with conservative virtual devices rather than changing several advanced options simultaneously. If a Windows guest freezes, record the VM XML and host logs, then test display, VirtIO drivers, firmware and CPU configuration one variable at a time.
 
+## Server environment installation
+
+Because I want to use an already existing Ubuntu server I have, I have to setup QEMU/KVM differently.
+
+For example, installing ``virt-manager``, a graphical frontend on a server environment is not only unnecessary, but also it does not serve its purpose. This changes **where the graphical interface should run**, but not the virtualization stack.
+
+I explain this different approach in detail in this .md file.
+
 ## Practical command sheet
 
 ```bash
