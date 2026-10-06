@@ -147,6 +147,68 @@ virsh -c qemu:///system net-start default
 virsh -c qemu:///system net-autostart default
 ```
 
+## Management options
+
+You have three reasonable management methods.
+
+| Method | Where it runs | Best use |
+| --- | --- | --- |
+| **virt-manager over SSH** | You Linux workstation | Best overall graphical interface |
+| **Cockpit Machines** | Web service on the Ubuntu Server | Convenient browser-based management |
+| **virsh + virt-install** | SSH terminal | Learning, automation, and troubleshooting |
+
+My recommendation is:
+1) Start with **virt-manager remotely** if you client computer runs Linux.
+2) Add **Cockpit Machines** if you want browser-based access.
+3) Gradually learn ``virsh`` and ``virt-install``.
+
+## Remote virt-maanger
+
+On an UBuntu desktop or another Debian-based Linux workstation:
+```bash
+sudo apt install virt-manager
+```
+Do **not** install it on the headless server.
+
+Configure SSH keys:
+```bash
+ssh-keygen -t ed25519
+ssh-copy-id youruser@server-ip
+```
+
+Test normal SSH access:
+```bash
+ssh youruser@server-ip
+```
+
+Then test libvirt remotely:
+```bash
+virsh -c qemu+ssh://youruser@server-ip/system list --all
+```
+
+Start virt-manager using that same connection:
+```bash
+virt-manager -c qemu+ssh://youruser@server-ip/system
+```
+
+Ubuntu documents this exact management model: virt-manager runs on a graphical workstation and connects to the server's system libvirt instance through SSH keys.
+
+Notice the difference:
+```text
+qemu:///system
+```
+means:
+> Connect to system libvirt on this local machine.
+
+Whereas:
+```text
+qemu+ssh://youruser@server-ip/system
+```
+means:
+> Connect over SSH to the system libvirt instance on another machine.
+
+The VMs are still running on the Ubuntu Server. Virt-manager merely displays and controls them remotely.
+
 
 
 
