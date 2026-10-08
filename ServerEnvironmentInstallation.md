@@ -35,7 +35,7 @@ I **do not** need:
 
 Ubuntu even explicitly recommends installing virt-manager on a workstation rather than on a production server, and it supports managing a remote libvirt host through SSH.
 
-## Before isntalling
+## Before installing
 
 This assumes Ubuntu Server is installed **direcly on physical hardware**.
 
