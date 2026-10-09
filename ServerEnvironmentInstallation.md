@@ -209,6 +209,81 @@ means:
 
 The VMs are still running on the Ubuntu Server. Virt-manager merely displays and controls them remotely.
 
+## Cockpit altenative
+
+If your management computer is Windows or you want something closer to Proxmox's browser-based experience — without replacing Ubuntu Server — install Cockpit:
+
+```bash
+sudo apt install cockpit cockpit-machines
+sudo systemctl enable --now cockpit.socket
+```
+
+Cockpit Machines manages the same QEMU/libvirt VMs, rather than creating a separate virtualization environment.
+
+Open:
+```text
+https://SERVER-IP:9090
+```
+Do not expose port ``9090`` directly to the public internet. Restrict it to your LAN, managament VLAN, WireGuard/Tailscale network, or SSH tunnel.
+
+For an SSH tunel:
+```bash
+ssh -L 9090:localhost:9090 youruser@server-ip
+```
+
+Then open locally:
+```text
+https://localhost:9090
+```
+Cockpit is easier initially, but virt-manager normally exposes more low-level VM configuration. Both can manage VMs under the same ``qemu:///system`` environment.
+
+## Create your first VM
+
+For learning, create an Ubuntu Server VM inside the Ubuntu Server host.
+
+Organize your ISO images:
+```bash
+sudo mkdir -p /var/lib/libvirt/boot
+sudo cp ~/ubuntu-server.iso /var/lib/libvirt/boot
+```
+
+Then create the VM:
+```bash
+sudo virt-install \
+  --connect qemu:///system \
+  --name lab-ubuntu-01 \
+  --memory 4096 \
+  --vcpus 2 \
+  --cpu host \
+  --disk path=/var/lib/libvirt/images/lab-ubuntu-01.qcow2,size=30,foanat=qcow2,bus=virtio \
+  --cdrom /var/lib/libvirt/boot/ubuntu-server.iso \
+  --osinfo detect=on,name=generic \
+  --network network=default,model=virtio \
+  --graphics spice \
+  --boot uefi \
+  --noautoconsole
+```
+
+Then inspect it:
+```bash
+virsh -c qemu:///system list --all
+```
+
+Start or stop it:
+```bash
+virsh -c qemu:///system start lab-ubuntu-01
+virsh -c qemu:///system shutdown lab-ubuntu-01
+```
+
+Enable automatic startup with the physical server
+```bash
+virsh -c qemu:///system autostart lab-ubuntu-01
+```
+
+Ubuntu documents ``virsh`` for VM lifecycle management, including starting guests and enabling autostart.
+
+Access the graphical installer through remote virt-manager or Cockpit. Ubuntu also supports building guests from QCOW cloud images with ``virt-install`` and cloud-init, which will be useful once you progress from manual installations to repeatable deployments.
+
 
 
 
