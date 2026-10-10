@@ -2,11 +2,11 @@
 
 ## Introduction
 
-In the ``README.md`` file is shown the idea of how QEMU/KVM works. Here is a detailed step-by-step on how to set up QEMU/KVM in a server environment.
+In the [README.md](README.md) is shown the idea of how QEMU/KVM works. Here is a detailed step-by-step on how to set up QEMU/KVM in a server environment.
 
 ## The new architecture
 
-Previously ``virt-manager`` was needed IN the desired Desktop machine where QEMU/KVM were to be. Now, while not necessarily contradicting myself in ``README.md``, we don't have to remove the need of ``virt-manager``, we can just change the desired installation destination.
+Previously ``virt-manager`` was needed IN the desired Desktop machine where QEMU/KVM were to be. Now, while not necessarily contradicting myself in [README.md](README.md), we don't have to remove the need of ``virt-manager``, we can just change the desired installation destination.
 
 This changes **where the graphical interface should run**, but not the virtualization stack. On Ubuntu Server, install **QEMU/KVM + system-wide libvirt**, keep the server headless, and manage it either remotely with **virt-manager over SSH** or through **Cockpit Machines**.
 
