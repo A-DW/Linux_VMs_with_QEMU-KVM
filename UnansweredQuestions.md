@@ -3,7 +3,7 @@
 In this document I go through some questions and doubts that I had.
 
 Here are the questions:
- - Why QEMU and KVM, and not one fo the two?
+ - Why QEMU and KVM, and not one of the two?
  - Aren't they used for different purposes?
  - What is "``qemu:///system``"?
  - Could "``qemu:///system``" be different with different words?
@@ -16,7 +16,7 @@ Think of a VM as needing two major components:
 
 | Component | Responsibility |
 | --- | --- |
-| QEMU | Contrusct the virtual computer: motherboard, RAM, disks, NICs, USB controllers, firmware, display adpaters and other devices |
+| QEMU | Construct the virtual computer: motherboard, RAM, disks, NICs, USB controllers, firmware, display adapters and other devices |
 | KVM | Provides hardware-accelerated execution of the guest CPU through the Linux kernel |
 | libvirt | Starts, stops and configures QEMU processes |
 | virt-manager | Graphical interface controlling libvirt |
@@ -34,13 +34,13 @@ QEMU ─────→ virtual disks, NICs, display, firmware, devices
 
 QEMU can run without KVM by using its software CPU translator, **TCG**. That enables full emulation — including running software built for a different CPU architecture — but it is generally much slower than KVM for ordinary same-architecture VMs.
 
-KVM, conversly, does not provide the complete user-facing virtual computer by itself. It exposes a Linux kernel API, normally through ``/dev/kvm``, which a userspace program such as QEMU uses to execute the VM's virtual CPUs.
+KVM, conversely, does not provide the complete user-facing virtual computer by itself. It exposes a Linux kernel API, normally through ``/dev/kvm``, which a userspace program such as QEMU uses to execute the VM's virtual CPUs.
 
 Therefore:
 ```text
 QEMU without KVM = complete emulation, but usually slower
 KVM without QEMU = acceleration API, but no practical complete VM environment
-QEMU with KVM = complete VM with hardware-acccelerated execution
+QEMU with KVM = complete VM with hardware-accelerated execution
 ```
 
 For example, QEMU could run an ARM guest on an x86 computer through emulation:
@@ -63,7 +63,7 @@ It tells applications such as ``virsh`` and virt-manager:
 > Connect to the local system-wide libvirt QEMU driver.
 
 Its parts are:
-```test
+```text
 qemu:///system
 │       │
 │       └── libvirt system instance
@@ -80,13 +80,13 @@ qemu:// /system
 └── URI scheme
 ```
 
-There are **three slashes** because no remove hostname appears between **//** and **/system**:
+There are **three slashes** because no remote hostname appears between **//** and **/system**:
 ```text
 qemu://hostname/system     Remote hostname present
 qemu:///system             Hostname omitted; local machine
 ```
 
-The work ``qemu`` selects libvirt's QEMU driver. That driver can manage both software-emulated QEMU machines and KVM-accelerated QEMU machines, which is why the URI is named **qemu**. not necessarily **kvm**.
+The word ``qemu`` selects libvirt's QEMU driver. That driver can manage both software-emulated QEMU machines and KVM-accelerated QEMU machines, which is why the URI is named **qemu**, not necessarily **kvm**.
 
 ## System vs session
 
@@ -111,7 +111,7 @@ This connects to the system-level virtualization environment. It is suitable for
  - Server and home-lab VMs
  - VMs shared between authorized administrators
 
-The management service is privileged, although QEMU guest processes are normally subjected to additional user, permissino and security confinement configured by the distribution. Access to the system libvirt API should be trated as highly privileged.
+The management service is privileged, although QEMU guest processes are normally subjected to additional user, permission and security confinement configured by the distribution. Access to the system libvirt API should be treated as highly privileged.
 
 ### ``qemu:///session``
 
@@ -119,14 +119,14 @@ The management service is privileged, although QEMU guest processes are normally
 virsh -c qemu:///session list --all
 ```
 
-This connects to a libvirt instance associated with your user account. Its VMs run with your user's permissions and commonly store their disk images under your home directory. It has fewer permission complications but more restrictions around networking, host devices and boot-tome operation.
+This connects to a libvirt instance associated with your user account. Its VMs run with your user's permissions and commonly store their disk images under your home directory. It has fewer permission complications but more restrictions around networking, host devices and boot-time operation.
 
 Most of your home-lab work should use:
 ```text
 qemu:///system
 ```
 
-## Are they seperate environments?
+## Are they separate environments?
 
 Yes. This is very important:
 ```bash
@@ -136,9 +136,9 @@ virsh -c qemu:///session list --all
 
 These commands may show **completely different VM lists**.
 
-A VM created under ``qemu:///system`` does nto automatically appear under ``qemu:///session``, even though both connections are on the same computer. They represent separate libvirt management scopes with separate VM definitions, storage configuration and networking capabilities.
+A VM created under ``qemu:///system`` does not automatically appear under ``qemu:///session``, even though both connections are on the same computer. They represent separate libvirt management scopes with separate VM definitions, storage configuration and networking capabilities.
 
-This sometimes causes the confusing situation where virt-manager shows a VM but ``virsh  list --all`` does not. Usually, virt-manager and ``virsh`` are connected to different URIs.
+This sometimes causes the confusing situation where virt-manager shows a VM but ``virsh list --all`` does not. Usually, virt-manager and ``virsh`` are connected to different URIs.
 
 Always make the connection explicit while learning:
 ```bash
@@ -153,14 +153,15 @@ virsh -c qemu:///system list --all
 
 Yes. Different words change the driver, privilege scope, transport or destination.
 
-**Local session instance**
+### Local session instance
+
 ```text
 qemu:///session
 ```
 
-Same QEMU drivers, but your per-user libvirt environment.
+Same QEMU driver, but your per-user libvirt environment.
 
- ### Remote host over SSH
+### Remote host over SSH
 
 ```text
 qemu+ssh://user@server/system
@@ -178,7 +179,7 @@ Example:
 virsh -c qemu+ssh://alex@192.168.1.50/system list --all
 ```
 
-Virt-manager can use this too, allowing your Ubuntu desktop to manage VMs running on a separate Linux server. libvirt officially supports local, Unix-socker, SSH, TCP and remote variantes of the QEMU connection URI.
+Virt-manager can use this too, allowing your Ubuntu desktop to manage VMs running on a separate Linux server. libvirt officially supports local, Unix socket, SSH, TCP and remote variants of the QEMU connection URI.
 
 ### Explicit local Unix transport
 ```text
@@ -198,9 +199,9 @@ lxc:///system
 xen:///system
 ```
 
-Those do not mean "alternative names for the QEMU/KVM connetion"; they identify different virtualization backends. Libvirt uses connection URIs precisely because it can manage multiple virtualization providers.
+Those do not mean "alternative names for the QEMU/KVM connection"; they identify different virtualization backends. Libvirt uses connection URIs precisely because it can manage multiple virtualization providers.
 
-## WHy not ``kvm:///system``?
+## Why not ``kvm:///system``?
 
 The documented libvirt URI scheme for this driver is ``qemu``, because QEMU is the userspace VM monitor being managed. Whether a particular guest uses KVM acceleration is stored in that VM's definition rather than determined by the URI.
 
@@ -209,7 +210,7 @@ You can inspect a VM's definition:
 virsh -c qemu:///system dumpxml VM_NAME | head
 ```
 
-A KVM-accelerated guest will typically being with something resembling:
+A KVM-accelerated guest will typically begin with something resembling:
 ```xml
 <domain type='kvm'>
 ```
@@ -223,7 +224,8 @@ qemu:///system
 ```
 means:
 > Which libvirt driver and management environment am I connecting to?
-Where as:
+
+Whereas:
 ```xml
 <domain type='kvm'>
 ```
@@ -231,4 +233,12 @@ means:
 > Which execution backend should this particular VM use?
 
 So the precise recommendation is:
-> Use **QEMU as the virtual-machine monitor. KVM as QEMU's hardware accelerator, libvirt as the management layer, and connect virt-manager/virsh to ``qemu:///system``**.
+> Use **QEMU as the virtual-machine monitor, KVM as QEMU's hardware accelerator, libvirt as the management layer, and connect virt-manager/virsh to ``qemu:///system``**.
+
+## Sources
+
+- [Connection URIs - libvirt](https://libvirt.org/uri.html)
+- [QEMU/KVM/HVF hypervisor driver - libvirt](https://libvirt.org/drvqemu.html)
+- [QEMU documentation: Introduction](https://www.qemu.org/docs/master/system/introduction.html)
+- [QEMU documentation: Glossary](https://www.qemu.org/docs/master/glossary.html)
+- [Libvirt FAQ](https://wiki.libvirt.org/FAQ.html)
