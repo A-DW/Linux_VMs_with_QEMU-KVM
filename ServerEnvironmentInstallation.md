@@ -2,16 +2,16 @@
 
 ## Introduction
 
-In  the ``README.md`` file is shown the idea of how QEMU/KVM works. Here is a detailed setp-by-step on how to setup QEMU/KVM in a server environment.
+In the ``README.md`` file is shown the idea of how QEMU/KVM works. Here is a detailed step-by-step on how to set up QEMU/KVM in a server environment.
 
 ## The new architecture
 
-Previously ``virt-manager`` was needed IN the desired Desktop machine where QEMU/KVM were to be. Now, while not necessarily contradicting myself in ``README.md, we don't have to remove the need of ``virt-manager``, we can just change the desired installation destination.
+Previously ``virt-manager`` was needed IN the desired Desktop machine where QEMU/KVM were to be. Now, while not necessarily contradicting myself in ``README.md``, we don't have to remove the need of ``virt-manager``, we can just change the desired installation destination.
 
-This changes **where the graphical interface should run**, but not the virtualization stack. On Ubuntu Server, is installed **QEMU/KVM + system-wide libvirt**, keep the server headless, and manage it either remotely with **virt-manager over SSH** or through **Cockpit Machines**.
+This changes **where the graphical interface should run**, but not the virtualization stack. On Ubuntu Server, install **QEMU/KVM + system-wide libvirt**, keep the server headless, and manage it either remotely with **virt-manager over SSH** or through **Cockpit Machines**.
 
 The new architecture:
-```bash
+```text
 Your workstation
 ├── virt-manager
 └── SSH client
@@ -37,7 +37,7 @@ Ubuntu even explicitly recommends installing virt-manager on a workstation rathe
 
 ## Before installing
 
-This assumes Ubuntu Server is installed **direcly on physical hardware**.
+This assumes Ubuntu Server is installed **directly on physical hardware**.
 
 Check whether CPU virtualization is available:
 ```bash
@@ -66,7 +66,7 @@ or
 Virtualization: VT-x
 ```
 
-If the Ubuntu server is itself a VM, the outer hypervisor must provide nested virtualization. Otherwise, ``/dev/kvm`` may be unavailable and you inner VMs would either fail or use very slow software emulation.
+If the Ubuntu server is itself a VM, the outer hypervisor must provide nested virtualization. Otherwise, ``/dev/kvm`` may be unavailable and your inner VMs would either fail or use very slow software emulation.
 
 ## Install the server stack
 
@@ -78,7 +78,8 @@ sudo apt install qemu-kvm qemu-utils libvirt-daemon-system libvirt-clients virti
 ```
 
 The critical packages are:
-| Package |  Purpose |
+
+| Package | Purpose |
 | --- | --- |
 | ``qemu-kvm`` | QEMU system virtualization with KVM support |
 | ``libvirt-daemon-system`` | System-wide VM management |
@@ -154,18 +155,18 @@ You have three reasonable management methods.
 
 | Method | Where it runs | Best use |
 | --- | --- | --- |
-| **virt-manager over SSH** | You Linux workstation | Best overall graphical interface |
+| **virt-manager over SSH** | Your Linux workstation | Best overall graphical interface |
 | **Cockpit Machines** | Web service on the Ubuntu Server | Convenient browser-based management |
 | **virsh + virt-install** | SSH terminal | Learning, automation, and troubleshooting |
 
 My recommendation is:
-1) Start with **virt-manager remotely** if you client computer runs Linux.
+1) Start with **virt-manager remotely** if your client computer runs Linux.
 2) Add **Cockpit Machines** if you want browser-based access.
 3) Gradually learn ``virsh`` and ``virt-install``.
 
-## Remote virt-maanger
+## Remote virt-manager
 
-On an UBuntu desktop or another Debian-based Linux workstation:
+On an Ubuntu desktop or another Debian-based Linux workstation:
 ```bash
 sudo apt install virt-manager
 ```
@@ -212,7 +213,7 @@ means:
 
 The VMs are still running on the Ubuntu Server. Virt-manager merely displays and controls them remotely.
 
-## Cockpit altenative
+## Cockpit alternative
 
 If your management computer is Windows or you want something closer to Proxmox's browser-based experience — without replacing Ubuntu Server — install Cockpit:
 
@@ -227,7 +228,7 @@ Open:
 ```text
 https://SERVER-IP:9090
 ```
-Do not expose port ``9090`` directly to the public internet. Restrict it to your LAN, managament VLAN, WireGuard/Tailscale network, or SSH tunnel.
+Do not expose port ``9090`` directly to the public internet. Restrict it to your LAN, management VLAN, WireGuard/Tailscale network, or SSH tunnel.
 
 A documented warning is not enforcement, so also restrict the port with a firewall rule. For example, with UFW, allow only your management subnet (replace ``MANAGEMENT_SUBNET`` with your own, such as ``192.168.1.0/24``):
 ```bash
@@ -236,7 +237,7 @@ sudo ufw status numbered
 ```
 Make sure SSH access is allowed before enabling UFW on a remote server, otherwise you can lock yourself out.
 
-For an SSH tunel:
+For an SSH tunnel:
 ```bash
 ssh -L 9090:localhost:9090 youruser@server-ip
 ```
@@ -292,7 +293,7 @@ virsh -c qemu:///system start lab-ubuntu-01
 virsh -c qemu:///system shutdown lab-ubuntu-01
 ```
 
-Enable automatic startup with the physical server
+Enable automatic startup with the physical server:
 ```bash
 virsh -c qemu:///system autostart lab-ubuntu-01
 ```
@@ -333,3 +334,21 @@ Physical NIC ── br0 ── Ubuntu Server
                     └── VM 3
 ```
 Do not begin by changing the server's main network interface remotely unless you have console access, because a malformed Netplan bridge configuration can disconnect the server.
+
+## Troubleshooting
+
+| Symptom | Likely cause | What to check |
+| --- | --- | --- |
+| ``/dev/kvm`` does not exist | Virtualization disabled in UEFI/BIOS, or the server is a VM without nested virtualization | ``sudo kvm-ok``, ``lscpu \| grep Virtualization``, UEFI/BIOS settings, nested virtualization on the outer hypervisor |
+| ``virsh`` says permission denied | Your account is not in the ``libvirt`` group, or you have not logged in again since being added | ``id``, then log out and reconnect |
+| ``qemu+ssh`` connection fails | SSH key or user problem, or libvirt not running on the server | ``ssh youruser@server-ip``, then ``systemctl status libvirtd`` on the server |
+| VM has no network | The ``default`` libvirt network is inactive | ``virsh -c qemu:///system net-list --all``, then ``net-start default`` and ``net-autostart default`` |
+| virt-manager shows a VM but ``virsh list --all`` does not | The two tools are connected to different URIs | Always pass ``-c qemu:///system`` (or the ``qemu+ssh`` URI) explicitly |
+
+## Sources
+
+- [Libvirt - Ubuntu Server documentation](https://ubuntu.com/server/docs/how-to/virtualisation/libvirt/)
+- [Virtual Machine Manager - Ubuntu Server documentation](https://ubuntu.com/server/docs/how-to/virtualisation/virtual-machine-manager/)
+- [Launch QCOW images using libvirt - Ubuntu](https://ubuntu.com/docs/public-images/public-images-how-to/launch-with-libvirt/)
+- [Libvirt SSH setup](https://wiki.libvirt.org/SSHSetup.html)
+- [Virtual Machines - Cockpit Project](https://cockpit-project.org/guide/195/feature-virtualmachines.html)
