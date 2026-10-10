@@ -284,31 +284,31 @@ Ubuntu documents ``virsh`` for VM lifecycle management, including starting guest
 
 Access the graphical installer through remote virt-manager or Cockpit. Ubuntu also supports building guests from QCOW cloud images with ``virt-install`` and cloud-init, which will be useful once you progress from manual installations to repeatable deployments.
 
+## Networking choice
 
+For your first VMs, select:
+```text
+Virtual network: default
+Mode: NAT
+```
 
+Conceptually:
+```text
+Physical LAN
+    │
+Ubuntu Server
+    │
+libvirt NAT network
+    │
+VMs: 192.168.122.0/24
+```
+The VMs can ordinarily access the LAN and Internet, but other LAN devices cannot initiate connections to them without forwarding or routing configuration.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+Later, if you want each VM to have its own IP address from your physical LAN, create a **Linux bridge**, such as ``br0``:
+```text
+Physical NIC ── br0 ── Ubuntu Server
+                    ├── VM 1
+                    ├── VM 2
+                    └── VM 3
+```
+Do not begin by changing the server's main network interface remotely unless you have console access, because a malformed Netplan bridge configuration can disconnect the server.
