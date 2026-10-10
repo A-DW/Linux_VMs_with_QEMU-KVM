@@ -90,14 +90,15 @@ The critical packages are:
 
 Ubuntu documents ``qemu-kvm`` and ``libvirt-daemon-system`` as the core Ubuntu Server installation.
 
-Add your administrative account to the relevant groups:
+Add your administrative account to the ``libvirt`` group:
 ```bash
 sudo adduser "$USER" libvirt
-sudo adduser "$USER" kvm
 ```
-Then **log out of SSH and reconnect** so the new group memberships take effect.
+Then **log out of SSH and reconnect** so the new group membership takes effect.
 
-Be selective about membership in ``libvirt``: users capable of defining arbitrary system VMs may given access to sensitive host resources. Treat it as an administrative group.
+Treat the ``libvirt`` group as administrative, because membership is effectively near-root on the host: a member can define arbitrary system VMs, which may give access to sensitive host resources such as disks and devices. Only add accounts you fully trust.
+
+The ``kvm`` group is not required for VMs managed through ``qemu:///system``, because libvirt runs those guests under its own service account. It is only relevant when your own user starts QEMU directly, so following the principle of least privilege it is not added here.
 
 ## Verify the server
 
@@ -105,11 +106,11 @@ After reconnecting:
 ```bash
 id
 ```
-You should see ``libvirt`` and ``kvm`` in the group list.
+You should see ``libvirt`` in the group list.
 
 Then run:
 ```bash
-virt-host-valuable qemu
+virt-host-validate qemu
 ```
 
 Check the system-wide libvirt connection:
@@ -181,6 +182,8 @@ Test normal SSH access:
 ssh youruser@server-ip
 ```
 
+Once key-based login works, consider disabling password logins on the server by setting ``PasswordAuthentication no`` in ``/etc/ssh/sshd_config`` (or a drop-in file under ``/etc/ssh/sshd_config.d/``), then reloading SSH. Keep your current session open and test a new login from a second terminal first, so a mistake does not lock you out.
+
 Then test libvirt remotely:
 ```bash
 virsh -c qemu+ssh://youruser@server-ip/system list --all
@@ -226,6 +229,13 @@ https://SERVER-IP:9090
 ```
 Do not expose port ``9090`` directly to the public internet. Restrict it to your LAN, managament VLAN, WireGuard/Tailscale network, or SSH tunnel.
 
+A documented warning is not enforcement, so also restrict the port with a firewall rule. For example, with UFW, allow only your management subnet (replace ``MANAGEMENT_SUBNET`` with your own, such as ``192.168.1.0/24``):
+```bash
+sudo ufw allow from MANAGEMENT_SUBNET to any port 9090 proto tcp
+sudo ufw status numbered
+```
+Make sure SSH access is allowed before enabling UFW on a remote server, otherwise you can lock yourself out.
+
 For an SSH tunel:
 ```bash
 ssh -L 9090:localhost:9090 youruser@server-ip
@@ -247,7 +257,12 @@ sudo mkdir -p /var/lib/libvirt/boot
 sudo cp ~/ubuntu-server.iso /var/lib/libvirt/boot
 ```
 
-Then create the VM:
+First list the OS identifiers known to your system, and pick the one matching your guest:
+```bash
+virt-install --osinfo list | grep -i ubuntu
+```
+
+Then create the VM (replace ``ubuntu24.04`` with the identifier matching your ISO):
 ```bash
 sudo virt-install \
   --connect qemu:///system \
@@ -255,14 +270,16 @@ sudo virt-install \
   --memory 4096 \
   --vcpus 2 \
   --cpu host \
-  --disk path=/var/lib/libvirt/images/lab-ubuntu-01.qcow2,size=30,foanat=qcow2,bus=virtio \
+  --disk path=/var/lib/libvirt/images/lab-ubuntu-01.qcow2,size=30,format=qcow2,bus=virtio \
   --cdrom /var/lib/libvirt/boot/ubuntu-server.iso \
-  --osinfo detect=on,name=generic \
+  --osinfo ubuntu24.04 \
   --network network=default,model=virtio \
   --graphics spice \
   --boot uefi \
   --noautoconsole
 ```
+
+A specific ``--osinfo`` value lets virt-install choose appropriate virtual hardware defaults for the guest, which a ``generic`` value does not.
 
 Then inspect it:
 ```bash
@@ -283,6 +300,10 @@ virsh -c qemu:///system autostart lab-ubuntu-01
 Ubuntu documents ``virsh`` for VM lifecycle management, including starting guests and enabling autostart.
 
 Access the graphical installer through remote virt-manager or Cockpit. Ubuntu also supports building guests from QCOW cloud images with ``virt-install`` and cloud-init, which will be useful once you progress from manual installations to repeatable deployments.
+
+## Storage warning
+
+By default libvirt stores VM disk images under ``/var/lib/libvirt/images``, which normally lives on the root filesystem. Growing QCOW2 images can fill it and affect the whole server. For anything beyond a small lab, create a dedicated storage pool on a separate disk or LVM volume.
 
 ## Networking choice
 

@@ -22,7 +22,7 @@ For those questions to be answered, we need to first understand what they are:
 | VirtualBox | Self-contained cross-platform desktop virtualization product. | Keep oly if an existing workflow, appliance or course specifically requires it. |
 | Proxmox VE | A complete, dedicated virtualization platform, a Linux destribution, rather than a normal (client) Ubuntu desktop application. | Not for the stated requirement. It becomes relevant later for a separate always-on lab host. |
 
-I could just use VirtualBox, as I were before on Windows, but given that KVM is part of the Linux kernel, I can use the closest capability to bare-metal CPU's hardware virtualization possible. Not to mention that while on Windows it may do the work for something like a side project, the feedback is not that good when it comes to Linux.
+I could just use VirtualBox, as I were before on Windows, but given that KVM is part of the Linux kernel, I can use the closest capability to bare-metal CPU's hardware virtualization possible. In my own experience, VirtualBox on Linux felt heavier on resources than QEMU/KVM, so I decided to try the native Linux stack.
 
 So why not try something new and works better?
 
@@ -40,9 +40,9 @@ libvirt             → Manages VMs, networks and storage
        ↓
 QEMU                → Provides the virtual machine and virtual hardware
        ↓
-KVM                 → Uses CPU hardware virtualization for acceleration
+KVM                 → Linux kernel module that exposes hardware virtualization to QEMU
        ↓
-Intel VT-x / AMD-V  → Uses CPU hardware virtualization for acceleration
+Intel VT-x / AMD-V  → CPU hardware virtualization extensions
 ```
 
 - **KVM** is part of the Linux kernel, not a standalone GUI/program.
@@ -65,11 +65,13 @@ sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients virt-manager vir
 
 Ubunt's current documentaion lists ``qemu-kvm`` and ``libvirt-daemon-system`` as the core installation and ``virt-manager`` as its graphical manager. ``ovmf`` supplies UEFI firmware for x86-64 guests, while ``swtpm`` supplies an emulated TPM when a modern guest such as Windows 11 needs one.
 
-Give your account VM-management permissions to the management groups:
+Give your account VM-management permissions by adding it to the ``libvirt`` group:
 ```bash
-sudo usermod -aG libvirt,kvm "$USER"
+sudo usermod -aG libvirt "$USER"
 ```
 Then **log out completely and log back in**.
+
+Membership in the ``libvirt`` group is effectively administrative: a member can define arbitrary system VMs, which may expose sensitive host resources. Only add trusted accounts. The ``kvm`` group is not needed for VMs managed through ``qemu:///system``, because libvirt runs those guests under its own service account; it is only relevant when your own user starts QEMU directly.
 
 Check the host afterward:
 ```bash
@@ -125,7 +127,7 @@ Windows works well under this stack, but it benefits strongly from **VirtIO driv
 For an uncomplicated first Windows installation:
  1. Create the VM with virt-manager and select the detected Windows version.
  2. Use UEFI and add and emulated TPM 2.0 for Windows 11.
- 3. Attach both the Windows installation ISO and the stable ``virtio-win-iso``.
+ 3. Attach both the Windows installation ISO and the stable ``virtio-win.iso``.
  4. If Windows Setup cannot see a VirtIO disk, choose **Load driver** and select the matching storage driver from the VirtIO ISO.
  5. After Windows boots, install the full VirtIO guest tools and QEMU guest agent.
 
@@ -139,7 +141,7 @@ Because I want to use an already existing Ubuntu server I have, I have to setup 
 
 For example, installing ``virt-manager``, a graphical frontend on a server environment is not only unnecessary, but also it does not serve its purpose. This changes **where the graphical interface should run**, but not the virtualization stack.
 
-I explain this different approach in detail in this .md file.
+I explain this different approach in detail in [ServerEnvironmentInstallation.md](ServerEnvironmentInstallation.md).
 
 ## Practical command sheet
 
@@ -173,7 +175,7 @@ These commands use the same libvirt-managed machines visible in virt-manager, so
 
 ### QEMU alone
 
-Do not begin by manually writing large ``qemu-system-x86_64`` commands. That appreaoch is valuable for understanding experiments, but it means personally managing arguments for storage, networking, firmware, display and lifecycle. QEMU can fully emulate another CPU architecture for ordinary work.
+Do not begin by manually writing large ``qemu-system-x86_64`` commands. That appreaoch is valuable for understanding experiments, but it means personally managing arguments for storage, networking, firmware, display and lifecycle. QEMU can also emulate other CPU architectures entirely in software, but for same-architecture guests (for example an x86-64 guest on an x86-64 host) KVM acceleration should be used for ordinary work.
 
 ### KVM alone
 
