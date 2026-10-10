@@ -142,7 +142,7 @@ This sometimes causes the confusing situation where virt-manager shows a VM but 
 
 Always make the connection explicit while learning:
 ```bash
-virsh -connect qemu:///system list --all
+virsh --connect qemu:///system list --all
 ```
 The shorter equivalent is:
 ```bash
@@ -182,7 +182,7 @@ Virt-manager can use this too, allowing your Ubuntu desktop to manage VMs runnin
 
 ### Explicit local Unix transport
 ```text
-qemu+unix:///systen
+qemu+unix:///system
 ```
 This explicitly requests a local Unix socket. For normal local operation, it is usually unnecessary because:
 ```text
@@ -202,7 +202,7 @@ Those do not mean "alternative names for the QEMU/KVM connetion"; they identify 
 
 ## WHy not ``kvm:///system``?
 
-Historically, libvirt has recognized KVM-oriented URI handling, but the modern driver and documented protocol are ``qemu`` because QEMU is the userspace VM monitor being managed. Whether a particular guest uses KVM acceleration is stored in that VM's definition rather than primarily determined by the URI.
+The documented libvirt URI scheme for this driver is ``qemu``, because QEMU is the userspace VM monitor being managed. Whether a particular guest uses KVM acceleration is stored in that VM's definition rather than determined by the URI.
 
 You can inspect a VM's definition:
 ```bash
@@ -215,7 +215,7 @@ A KVM-accelerated guest will typically being with something resembling:
 ```
 A software-emulated QEMU guest would instead use:
 ```xml
-<domaing type='qemu'>
+<domain type='qemu'>
 ```
 Therefore, these two concepts answer different questions:
 ```text
@@ -225,28 +225,10 @@ means:
 > Which libvirt driver and management environment am I connecting to?
 Where as:
 ```xml
-<domain type='kvm?'>
+<domain type='kvm'>
 ```
 means:
 > Which execution backend should this particular VM use?
 
 So the precise recommendation is:
 > Use **QEMU as the virtual-machine monitor. KVM as QEMU's hardware accelerator, libvirt as the management layer, and connect virt-manager/virsh to ``qemu:///system``**.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
