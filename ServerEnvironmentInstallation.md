@@ -109,10 +109,16 @@ id
 ```
 You should see ``libvirt`` in the group list.
 
-Then run:
+Validate the host as root:
 ```bash
-virt-host-validate qemu
+sudo virt-host-validate qemu
 ```
+
+This is a host-level validation. Running it without ``sudo`` may report that ``/dev/kvm`` is inaccessible because the administrative account is intentionally not added to the ``kvm`` group. That does not mean that VMs managed through ``qemu:///system`` cannot use KVM: libvirt launches QEMU under its own service account, which has the required access.
+
+The word ``qemu`` in ``virt-host-validate qemu`` and ``qemu:///system`` identifies libvirt's QEMU driver. It does **not** mean that guests use software-only CPU emulation. This guide creates QEMU virtual machines accelerated by KVM.
+
+A warning that secure guest support is unknown does not prevent normal KVM virtualization. It concerns optional confidential-computing technologies such as AMD SEV or Intel TDX.
 
 Check the system-wide libvirt connection:
 ```bash
@@ -197,6 +203,8 @@ virt-manager -c qemu+ssh://youruser@server-ip/system
 
 Ubuntu documents this exact management model: virt-manager runs on a graphical workstation and connects to the server's system libvirt instance through SSH keys.
 
+The ``qemu`` URI scheme identifies libvirt's QEMU driver, which manages both QEMU/KVM hardware-accelerated guests and software-emulated QEMU guests. The VM definition selects the acceleration type; the URI itself does not disable KVM.
+
 Notice the difference:
 ```text
 qemu:///system
@@ -267,6 +275,7 @@ Then create the VM (replace ``ubuntu24.04`` with the identifier matching your IS
 ```bash
 sudo virt-install \
   --connect qemu:///system \
+  --virt-type kvm \
   --name lab-ubuntu-01 \
   --memory 4096 \
   --vcpus 2 \
@@ -280,11 +289,33 @@ sudo virt-install \
   --noautoconsole
 ```
 
-A specific ``--osinfo`` value lets virt-install choose appropriate virtual hardware defaults for the guest, which a ``generic`` value does not.
+A specific ``--osinfo`` value lets virt-install choose appropriate virtual hardware defaults for the guest, which a ``generic`` value does not. The explicit ``--virt-type kvm`` option requires KVM hardware acceleration instead of QEMU's software CPU emulation.
 
 Then inspect it:
 ```bash
 virsh -c qemu:///system list --all
+virsh -c qemu:///system dumpxml lab-ubuntu-01 | grep -m1 '<domain type='
+```
+
+The second command should show:
+```xml
+<domain type='kvm'>
+```
+This confirms that the VM definition requests KVM acceleration.
+
+For a running VM, query QEMU directly to verify that KVM is present and enabled:
+```bash
+virsh -c qemu:///system qemu-monitor-command lab-ubuntu-01 \
+  --pretty '{"execute":"query-kvm"}'
+```
+Expected result:
+```json
+{
+  "return": {
+    "enabled": true,
+    "present": true
+  }
+}
 ```
 
 Start or stop it:
