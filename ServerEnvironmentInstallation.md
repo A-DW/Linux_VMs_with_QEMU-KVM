@@ -180,9 +180,13 @@ Do **not** install it on the headless server.
 
 Configure SSH keys:
 ```bash
-ssh-keygen -t ed25519
-ssh-copy-id youruser@server-ip
+ssh-keygen -t ed25519 -a 100 -C 'youruser@server-ip'
+ssh-copy-id -i ~/.ssh/id_ed25519.pub youruser@server-ip
 ```
+
+The ``-C`` option adds a descriptive comment to the public key so that its intended destination is easier to recognize later. Replace ``youruser@server-ip`` with the actual remote account and server address.
+
+Specifying ``-i`` ensures that only the intended public key is installed. Without it, ``ssh-copy-id`` first checks the keys exposed by ``ssh-agent`` and may add multiple public keys to the remote account's ``~/.ssh/authorized_keys`` file. It never copies private keys.
 
 Test normal SSH access:
 ```bash
@@ -382,4 +386,5 @@ Do not begin by changing the server's main network interface remotely unless you
 - [Virtual Machine Manager - Ubuntu Server documentation](https://ubuntu.com/server/docs/how-to/virtualisation/virtual-machine-manager/)
 - [Launch QCOW images using libvirt - Ubuntu](https://ubuntu.com/docs/public-images/public-images-how-to/launch-with-libvirt/)
 - [Libvirt SSH setup](https://wiki.libvirt.org/SSHSetup.html)
+- [ssh-copy-id - Ubuntu manpage](https://manpages.ubuntu.com/manpages/noble/man1/ssh-copy-id.1.html)
 - [Virtual Machines - Cockpit Project](https://cockpit-project.org/guide/195/feature-virtualmachines.html)
