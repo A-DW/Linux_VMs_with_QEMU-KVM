@@ -180,9 +180,11 @@ Do **not** install it on the headless server.
 
 Configure SSH keys:
 ```bash
-ssh-keygen -t ed25519 -a 100
+ssh-keygen -t ed25519 -a 100 -C 'youruser@server-ip'
 ssh-copy-id -i ~/.ssh/id_ed25519.pub youruser@server-ip
 ```
+
+The ``-C`` option adds a descriptive comment to the public key so that its intended destination is easier to recognize later. Replace ``youruser@server-ip`` with the actual remote account and server address.
 
 Specifying ``-i`` ensures that only the intended public key is installed. Without it, ``ssh-copy-id`` first checks the keys exposed by ``ssh-agent`` and may add multiple public keys to the remote account's ``~/.ssh/authorized_keys`` file. It never copies private keys.
 
