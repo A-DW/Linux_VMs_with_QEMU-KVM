@@ -8,6 +8,7 @@ This is my learning path experience to using Virtual Machines (VMs) on Linux wit
 - [How the stack works](#how-the-stack-works)
 - [Desktop environment installation](#desktop-environment-installation)
 - [Server environment installation](#server-environment-installation)
+- [VM maintenance](#vm-maintenance)
 - [Practical command sheet](#practical-command-sheet)
 - [What not to choose](#what-not-to-choose)
 - [Further reading](#further-reading)
@@ -153,6 +154,15 @@ Because I want to use an already existing Ubuntu server I have, I have to set up
 For example, installing ``virt-manager``, a graphical frontend, on a server environment is not only unnecessary, but also it does not serve its purpose. This changes **where the graphical interface should run**, but not the virtualization stack.
 
 I explain this different approach in detail in [ServerEnvironmentInstallation.md](ServerEnvironmentInstallation.md).
+
+## VM maintenance
+
+After creating a VM, use these guides before backing it up or deleting it:
+
+- [VM storage and metadata](VMStorageAndMetadata.md): common host paths, actual-path discovery, name/UUID inventory, and VM-owned versus shared resources.
+- [VM lifecycle management](VMLifecycleManagement.md): offline backup, restore testing, unregistering, deletion, verification, and the limits of secure erasure.
+
+Start with the storage inventory, then follow the lifecycle procedure for your intended operation. For remotely managed VMs, run host filesystem commands on the virtualization server, not the workstation running virt-manager.
 
 ## Practical command sheet
 

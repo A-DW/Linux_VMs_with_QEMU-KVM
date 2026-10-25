@@ -337,6 +337,15 @@ Ubuntu documents ``virsh`` for VM lifecycle management, including starting guest
 
 Access the graphical installer through remote virt-manager or Cockpit. Ubuntu also supports building guests from QCOW cloud images with ``virt-install`` and cloud-init, which will be useful once you progress from manual installations to repeatable deployments.
 
+## VM maintenance
+
+Before backing up or deleting the new VM, follow these guides:
+
+- [VM storage and metadata](VMStorageAndMetadata.md): discover the VM's actual disk and metadata paths, record its name and UUID, and distinguish exclusive resources from shared networks and storage.
+- [VM lifecycle management](VMLifecycleManagement.md): create and test an offline backup, restore a VM, unregister or delete it, and verify the intended cleanup. The guide also distinguishes deletion from secure erasure.
+
+Run host filesystem and backup commands on this Ubuntu Server, for example through SSH, not on the workstation running remote virt-manager. When using the local examples on the server, select `qemu:///system` explicitly.
+
 ## Storage warning
 
 By default libvirt stores VM disk images under ``/var/lib/libvirt/images``, which normally lives on the root filesystem. Growing QCOW2 images can fill it and affect the whole server. For anything beyond a small lab, create a dedicated storage pool on a separate disk or LVM volume.
