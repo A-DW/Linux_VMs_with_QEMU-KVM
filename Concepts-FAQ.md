@@ -7,6 +7,12 @@ Here are the questions:
  - Aren't they used for different purposes?
  - What is "``qemu:///system``"?
  - Could "``qemu:///system``" be different with different words?
+ - [How do shutdown, destroy, undefine and deletion differ?](#how-do-shutdown-destroy-undefine-and-deletion-differ)
+ - [Is a snapshot the same as a backup?](#is-a-snapshot-the-same-as-a-backup)
+ - [Are the VM definition and virtual disk the whole machine?](#are-the-vm-definition-and-virtual-disk-the-whole-machine)
+ - [Should deleting a VM also delete its network?](#should-deleting-a-vm-also-delete-its-network)
+ - [Does a missing VM entry prove complete deletion?](#does-a-missing-vm-entry-prove-complete-deletion)
+ - [Is deletion the same as secure erasure?](#is-deletion-the-same-as-secure-erasure)
 
 **QEMU and KVM serve different purposes**, but on Linux they are normally used **together**. QEMU provides the virtual computer; KVM lets QEMU execute the guest's CPU instructions efficiently on the physical CPU.
 
@@ -235,6 +241,56 @@ means:
 So the precise recommendation is:
 > Use **QEMU as the virtual-machine monitor, KVM as QEMU's hardware accelerator, libvirt as the management layer, and connect virt-manager/virsh to ``qemu:///system``**.
 
+## How do shutdown, destroy, undefine and deletion differ?
+
+A VM has running state, a persistent libvirt definition, disks and other state. Stopping one component does not automatically remove the others.
+
+| Operation | What changes | What it does not establish |
+| --- | --- | --- |
+| `shutdown` | Requests a graceful guest shutdown; wait for `shut off` | Does not delete registration, disks or metadata |
+| `destroy` | Forces power-off, similar to cutting power | Does not mean delete; may lose unsaved data |
+| `undefine` without storage-removal options | Removes persistent registration; extra state can require explicit keep/remove choices | Does not delete disks; if running, the guest can continue as a transient domain |
+| Delete selected resources | Removes reviewed disks/state using explicit supported options or backend-specific operations | Does not automatically find all snapshots, backups or other copies |
+| Sanitize | Applies a storage/encryption-specific method intended to prevent recovery | Is not proven by a successful undefine or missing filename |
+
+Shut the VM off before following this repository's deletion workflow. Inspect `virsh help undefine` on the installed version and make explicit decisions about firmware variables, TPM state, managed saves and snapshot/checkpoint metadata. See [VM lifecycle management](VMLifecycleManagement.md) for procedures, including the condensed deletion command.
+
+## Is a snapshot the same as a backup?
+
+No. A snapshot records a point in time and can depend on the original disk or backing chain. It may also reside on the same storage as the VM. Losing that storage can therefore lose both the VM and its snapshots.
+
+A backup must contain the data and dependencies needed for the intended recovery, with appropriately protected independent copies. For UEFI/TPM guests, disks alone may be insufficient: matching writable firmware variables, TPM state and required key/recovery material can matter. An XML export describes configuration but does not contain the guest filesystem.
+
+Checksums verify copied content; supported image checks inspect structural integrity. Neither proves that the guest and its applications can be restored. Complete an isolated functional restore test. The [lifecycle guide](VMLifecycleManagement.md#2-offline-backup) starts with an offline backup rather than copying active disk images.
+
+## Are the VM definition and virtual disk the whole machine?
+
+Not necessarily. Separate components can include writable UEFI variables, emulated TPM state, managed-save memory, snapshot/checkpoint metadata, external snapshot disks, backing files and referenced secrets. Logs and exported backups are additional artifacts, but are not the running VM itself.
+
+Snapshot metadata describes snapshots; deleting that metadata is not the same as deleting every external snapshot disk. Saved memory is also different from a disk backup and can contain sensitive information.
+
+There is no universal per-VM directory. Common system-instance locations include `/etc/libvirt/qemu/` for definitions, `/var/lib/libvirt/images/` for disks, `/var/lib/libvirt/qemu/nvram/` for NVRAM and `/var/lib/libvirt/swtpm/<UUID>/` for TPM state. These are defaults, not guaranteed actual paths. Use the [storage and metadata reference](VMStorageAndMetadata.md) to discover exact paths and record both name and UUID before deletion.
+
+## Should deleting a VM also delete its network?
+
+Usually not. The example `--network network=default,model=virtio` connects a virtual NIC to an existing network; it does not create a dedicated network for that VM. Libvirt-managed runtime interfaces are cleaned up as the guest stops, while the shared network remains independently managed.
+
+Keep `default`, shared bridges, storage pools, firmware templates, installation ISOs and shared backing images. Only consider deleting a dedicated resource after checking all consumers, including powered-off VMs. A Netplan-managed host bridge is not a disposable VM attachment.
+
+## Does a missing VM entry prove complete deletion?
+
+No. Successful enumeration on the correct host and connection showing neither the old name nor UUID establishes absence from that libvirt domain inventory, not absence of all files or copies. A VM absent under `qemu:///session` might still exist under `qemu:///system` or on the remote server.
+
+Verify each inventoried disk and state object on reachable original storage, then review external snapshots, backups, exports and replicas separately. Searching names alone misses UUID-based state and differently named files. A missing mount, permission error or failed connection is UNKNOWN, not proof of deletion. Logs can remain intentionally without indicating an existing VM.
+
+Use the [verification checklist](VMLifecycleManagement.md#6-verify-deletion) and report the scope honestly: for example, registration and inventoried local resources deleted, backup retained, sanitization not established.
+
+## Is deletion the same as secure erasure?
+
+No. Removing registration and files is ordinary deletion. Secure sanitization addresses whether the underlying data can be recovered. SSD wear levelling, remapped blocks, copy-on-write storage, snapshots and backups can preserve copies despite overwriting a file. `shred` or `--wipe-storage` is not a universal guarantee.
+
+Cryptographic erasure requires a suitable encryption design and accounting for all decryption/recovery material and copies. Deleting one libvirt secret does not prove all keys are gone. Whole-device sanitization affects every resource on that device and is not an ordinary per-VM cleanup step. See [secure erasure limitations](VMLifecycleManagement.md#7-secure-erasure-is-a-separate-requirement).
+
 ## Sources
 
 - [Connection URIs - libvirt](https://libvirt.org/uri.html)
@@ -242,3 +298,7 @@ So the precise recommendation is:
 - [QEMU documentation: Introduction](https://www.qemu.org/docs/master/system/introduction.html)
 - [QEMU documentation: Glossary](https://www.qemu.org/docs/master/glossary.html)
 - [Libvirt FAQ](https://wiki.libvirt.org/FAQ.html)
+- [virsh command documentation](https://libvirt.org/manpages/virsh.html)
+- [Domain XML - libvirt](https://libvirt.org/formatdomain.html)
+- [QEMU image tools](https://www.qemu.org/docs/master/tools/qemu-img.html)
+- [GNU shred limitations](https://www.gnu.org/software/coreutils/manual/html_node/shred-invocation.html)
