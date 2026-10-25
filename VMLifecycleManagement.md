@@ -2,6 +2,20 @@
 
 Scope: Ubuntu, libvirt and `qemu:///system`. Run commands on the host containing the VM. These are operator-reviewed procedures, not an automatic deletion script. Read [VM storage and metadata](VMStorageAndMetadata.md) and record an exact resource inventory first.
 
+## Contents
+
+- [Choose the intended operation](#choose-the-intended-operation)
+- [1. Inventory and protect recovery information](#1-inventory-and-protect-recovery-information)
+- [2. Offline backup](#2-offline-backup)
+- [3. Restore and prove the backup works](#3-restore-and-prove-the-backup-works)
+- [4. Unregister while retaining data](#4-unregister-while-retaining-data)
+- [5. Delete selected VM-owned resources](#5-delete-selected-vm-owned-resources)
+  - [Condensed deletion command](#condensed-deletion-command)
+- [6. Verify deletion](#6-verify-deletion)
+- [7. Secure erasure is a separate requirement](#7-secure-erasure-is-a-separate-requirement)
+- [Validation status](#validation-status)
+- [References](#references)
+
 ## Choose the intended operation
 
 | Operation | Result |
