@@ -2,17 +2,21 @@
 
 In this document I go through some questions and doubts that I had.
 
-Here are the questions:
- - Why QEMU and KVM, and not one of the two?
- - Aren't they used for different purposes?
- - What is "``qemu:///system``"?
- - Could "``qemu:///system``" be different with different words?
- - [How do shutdown, destroy, undefine and deletion differ?](#how-do-shutdown-destroy-undefine-and-deletion-differ)
- - [Is a snapshot the same as a backup?](#is-a-snapshot-the-same-as-a-backup)
- - [Are the VM definition and virtual disk the whole machine?](#are-the-vm-definition-and-virtual-disk-the-whole-machine)
- - [Should deleting a VM also delete its network?](#should-deleting-a-vm-also-delete-its-network)
- - [Does a missing VM entry prove complete deletion?](#does-a-missing-vm-entry-prove-complete-deletion)
- - [Is deletion the same as secure erasure?](#is-deletion-the-same-as-secure-erasure)
+## Questions:
+
+- [Why both?](#why-both)
+- [What is `qemu:///system`?](#what-is-qemusystem)
+- [System vs session](#system-vs-session)
+- [Are they separate environments?](#are-they-separate-environments)
+- [Can the URI have different words?](#can-the-uri-have-different-words)
+- [Why not `kvm:///system`?](#why-not-kvmsystem)
+- [How do shutdown, destroy, undefine and deletion differ?](#how-do-shutdown-destroy-undefine-and-deletion-differ)
+- [Is a snapshot the same as a backup?](#is-a-snapshot-the-same-as-a-backup)
+- [Are the VM definition and virtual disk the whole machine?](#are-the-vm-definition-and-virtual-disk-the-whole-machine)
+- [Should deleting a VM also delete its network?](#should-deleting-a-vm-also-delete-its-network)
+- [Does a missing VM entry prove complete deletion?](#does-a-missing-vm-entry-prove-complete-deletion)
+- [Is deletion the same as secure erasure?](#is-deletion-the-same-as-secure-erasure)
+- [Sources](#sources)
 
 **QEMU and KVM serve different purposes**, but on Linux they are normally used **together**. QEMU provides the virtual computer; KVM lets QEMU execute the guest's CPU instructions efficiently on the physical CPU.
 
