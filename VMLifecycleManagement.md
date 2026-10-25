@@ -101,6 +101,21 @@ This is not a universal command. Build the final command from the installed help
 | `--snapshots-metadata` | Remove libvirt snapshot metadata, not every external snapshot disk |
 | `--checkpoints-metadata` | Remove checkpoint metadata; coordinate with incremental backup management |
 
+### Condensed deletion command
+
+After completing the inventory and backup decision, confirming the VM is shut off, and checking that every attached managed disk is exclusively owned and expendable, the following combines the common deletion options. Run it on the virtualization host with `VM` set to the exact VM name, and first confirm that the installed `virsh help undefine` supports these options.
+
+```bash
+virsh -c qemu:///system undefine "$VM" \
+  --remove-all-storage \
+  --nvram \
+  --managed-save \
+  --snapshots-metadata \
+  --checkpoints-metadata
+```
+
+This is destructive, not a secure-erasure guarantee. It does not explicitly request TPM-state deletion; for an emulated TPM, review the inventory and add `--tpm` only if supported and that state is intended for deletion. External snapshot disks, backing files, unmanaged storage, backups and other copies require separate review. Check all command output and complete the verification procedure below, even if the command reports success.
+
 Do not combine keep and delete options for the same state. Flag support and firmware handling vary by version. Only managed volumes can be removed this way; only the top image of a backing chain is removed. Read every message: registration can be removed while volume deletion fails. A source not found in the definition can be treated as already removed, so command success is not sufficient evidence.
 
 Review remaining unmanaged disks, unused external snapshots, memory saves/dumps, exported XML, backups and replicas by exact inventory entry. Use a backend-appropriate operation only after confirming ownership. Never use wildcard deletion or recursively remove libvirt directories. Preserve shared networks, pools, firmware, ISOs, base images and shared secrets. Logs may remain under an intentional retention policy.
