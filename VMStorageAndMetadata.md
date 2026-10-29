@@ -2,6 +2,13 @@
 
 This reference covers Ubuntu hosts using `qemu:///system`. Run filesystem commands on the virtualization host, not the remote virt-manager workstation. System and session connections have different inventories. Paths below are common defaults, not proof of a particular VM's configuration; packages, versions and local settings can change them.
 
+## Contents
+
+- [Inventory before backup or deletion](#inventory-before-backup-or-deletion)
+- [Component locations](#component-locations)
+- [Networks and shared resources](#networks-and-shared-resources)
+- [Authoritative references](#authoritative-references)
+
 ## Inventory before backup or deletion
 
 ```bash

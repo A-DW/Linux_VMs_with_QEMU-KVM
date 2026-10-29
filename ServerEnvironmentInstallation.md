@@ -1,5 +1,22 @@
 # Server environment installation
 
+## Contents
+
+- [Introduction](#introduction)
+- [The new architecture](#the-new-architecture)
+- [Before installing](#before-installing)
+- [Install the server stack](#install-the-server-stack)
+- [Verify the server](#verify-the-server)
+- [Management options](#management-options)
+- [Remote virt-manager](#remote-virt-manager)
+- [Cockpit alternative](#cockpit-alternative)
+- [Create your first VM](#create-your-first-vm)
+- [VM maintenance](#vm-maintenance)
+- [Storage warning](#storage-warning)
+- [Networking choice](#networking-choice)
+- [Troubleshooting](#troubleshooting)
+- [Sources](#sources)
+
 ## Introduction
 
 In the [README.md](README.md) is shown the idea of how QEMU/KVM works. Here is a detailed step-by-step on how to set up QEMU/KVM in a server environment.
